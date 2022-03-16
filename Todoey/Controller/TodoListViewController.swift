@@ -19,22 +19,47 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //找到plist沙盒位置
+        //find plist sandbox directory
         print(dataFilePath!)
         
-        let newItem = Item()
-        newItem.title = "Find Mike"
-        itemArray.append(newItem)
+//        let newItem = Item()
+//        newItem.title = "Find Mike"
+//        itemArray.append(newItem)
+//
+//        let newItem2 = Item()
+//        newItem2.title = "Buy Eggos"
+//        itemArray.append(newItem2)
+//
+//        let newItem3 = Item()
+//        newItem3.title = "Destroy Demogorgon"
+//        itemArray.append(newItem3)
         
-        let newItem2 = Item()
-        newItem2.title = "Buy Eggos"
-        itemArray.append(newItem2)
-        
-        let newItem3 = Item()
-        newItem3.title = "Destroy Demogorgon"
-        itemArray.append(newItem3)
+        loadItems()
     }
     
+    //MARK: - Add Method
+    @IBAction func addPressed(_ sender: UIBarButtonItem) {
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            
+            let newItem = Item()
+            newItem.title = textField.text!
+            self.itemArray.append(newItem)
+
+            self.saveItems()
+        }
+        
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create new item"
+            textField = alertTextField
+        }
+        
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
+    }
     
 
     //MARK: - TableView DataSource Methods
@@ -60,7 +85,7 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
-    //MARK: - Model Manupulation Methods存取沙盒文件
+    //MARK: - Model Manupulation Methods (Save & Read Sandbox files)
     func saveItems(){
         let encoder = PropertyListEncoder()
         
@@ -70,6 +95,7 @@ class TodoListViewController: UITableViewController {
         }catch{
             print("Error encoding \(error)")
         }
+        tableView.reloadData()
     }
     
     func loadItems(){
