@@ -92,14 +92,38 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    func loadItems(){
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()){ //Default fetchRequest,input可有可无
         do{
             itemArray = try context.fetch(request)
         }catch{
             print("Error fetching fata from context : \(error)")
         }
+        tableView.reloadData()
     }
     
+}
+
+extension TodoListViewController : UISearchBarDelegate{
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!) //根据包含关键词搜索
+        request.predicate = predicate
+        
+        let sortDescriptor = NSSortDescriptor(key:"title", ascending: true) //升序排序
+        request.sortDescriptors = [sortDescriptor]
+        
+        loadItems(with: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0{
+            loadItems()
+        }
+        
+        DispatchQueue.main.async {
+            searchBar.resignFirstResponder()
+        }
+    }
 }
 
