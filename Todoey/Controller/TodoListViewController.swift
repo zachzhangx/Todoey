@@ -14,6 +14,12 @@ class TodoListViewController: UITableViewController {
     //var array = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
     var itemArray = [Item]()
     
+    var selectedCategory : Category? {
+        didSet{
+            loadItems()
+        }
+    }
+    
     //Save in Sandbox
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
@@ -26,7 +32,7 @@ class TodoListViewController: UITableViewController {
         //find plist sandbox directory
         //print(dataFilePath!)
         
-        loadItems()
+        //loadItems()
     }
     
     //MARK: - Add Method
@@ -40,6 +46,7 @@ class TodoListViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textField.text!
             newItem.done = false
+            newItem.parentCategory = self.selectedCategory
             self.itemArray.append(newItem)
 
             self.saveItems()
@@ -92,7 +99,18 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()){ //Default fetchRequest,input可有可无
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil){ //Default fetchRequest,input可有可无, predicate非必传
+        
+        //Find matching items with category name
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        //adding two predicates together
+        if let addtionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, addtionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        
         do{
             itemArray = try context.fetch(request)
         }catch{
@@ -110,19 +128,18 @@ extension TodoListViewController : UISearchBarDelegate{
         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!) //根据包含关键词搜索
         request.predicate = predicate
         
-        let sortDescriptor = NSSortDescriptor(key:"title", ascending: true) //升序排序
-        request.sortDescriptors = [sortDescriptor]
+        //let sortDescriptor = NSSortDescriptor(key:"title", ascending: true) //升序排序
+        //request.sortDescriptors = [sortDescriptor]
         
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0{
             loadItems()
-        }
-        
-        DispatchQueue.main.async {
-            searchBar.resignFirstResponder()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
         }
     }
 }
