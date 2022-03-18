@@ -38,6 +38,7 @@ class TodoListViewController: UITableViewController {
                     try self.realm?.write({
                         let newItem = Item()
                         newItem.title = textField.text!
+                        newItem.createdDate = Date()
                         currentCategory.items.append(newItem)
                     })
                 }catch{
@@ -76,8 +77,33 @@ class TodoListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-          
+        
+        if let item = todoItems?[indexPath.row]{
+            do{
+                try realm?.write({
+                    item.done = !item.done
+                    
+                    //realm?.delete(item)
+                })
+            }catch{
+                print("Select Error \(error)")
+            }
+        }
+        tableView.reloadData()
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+//        if let item = todoItems?[indexPath.row]{
+//            do{
+//                try realm?.write({
+//                    realm?.delete(item)
+//                })
+//            }catch{
+//                print("Delete Error \(error)")
+//            }
+//        }
+        return true
     }
     
     //MARK: - Model Manupulation Methods
@@ -90,7 +116,7 @@ class TodoListViewController: UITableViewController {
 
 extension TodoListViewController : UISearchBarDelegate{
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title", ascending: true)
+        todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true) //[cd] Case Insensitive
         tableView.reloadData()
     }
 

@@ -12,7 +12,7 @@ import RealmSwift
 class CategoryViewController: UITableViewController {
 
     let realm = try! Realm()
-    var categories: Results<Category>?
+    var categories: Results<Category>? //Collection of Results that are Category type objects
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -74,6 +74,7 @@ class CategoryViewController: UITableViewController {
     
     func loadCategories() {
         
+        //look inside realm and fetch all the objects whis is belong to Category Type
         categories = realm.objects(Category.self)
         tableView.reloadData()
     }
